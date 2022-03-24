@@ -1,0 +1,1 @@
+This package shows spring security using jpa DaoAuthenticationProvider.
