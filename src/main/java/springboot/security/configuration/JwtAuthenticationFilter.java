@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import springboot.security.repository.TokenRepository;
 import springboot.security.service.JwtService;
 
 import java.io.IOException;
@@ -28,6 +29,7 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
+    private final TokenRepository tokenRepository;
     private final UserDetailsService userDetailsService;
 
     /**
@@ -45,18 +47,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // When we make a call, first we need to extract information from header
         final String authHeader = request.getHeader("Authorization");
         final String jwt = authHeader.substring(7);
-        final String userEmail = jwtService.extractUsername(jwt);
 
-        // If token does not meet these conditions, stop here and continue to next filters
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        // If token does not meet these conditions, stop here and continue to next filter
+        if (!authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
+
+        // Extract user email from JWT
+        final String userEmail = jwtService.extractUsername(jwt);
 
         // Check username(email) and if is not already authenticated
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             // Get user from the database
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+
+            // Check if token is valid on db side
+            var isTokenValid = tokenRepository.findByToken(jwt)                 // Fetching token from db
+                    .map(token -> !token.isExpired() && !token.isRevoked())     // Mapping result to boolean (should not be expired and revoked)
+                    .orElse(false);
 
             // Check if user and token is valid and update security context holder
             if (jwtService.isTokenValid(jwt, userDetails)) {

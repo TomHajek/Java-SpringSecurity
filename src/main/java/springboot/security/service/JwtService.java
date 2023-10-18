@@ -15,6 +15,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+/**
+ * JwtService is for handling JWT operations like:
+ * - extract username from JWT
+ * - generate jwt
+ * - validate jwt
+ */
 @Service
 public class JwtService {
 
