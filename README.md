@@ -58,11 +58,53 @@ header and payload with a secret that is known to both the issuer and receiver, 
 key known only to the sender. When the token is used, the receiving party verifies that the header 
 and payload match the signature.
 
-![jwt.png](src%2Fmain%2Fresources%2Fstatic%2Fjwt.png)
+JWT example:
 
+* header {
+  "alg":"HS256",
+  "typ":"JWT"
+  }
+
+* payload {
+  "sub":"john12",
+  "name":"John Doe",
+  "iat":"1516239022",
+  "claims":"create, edit"
+  }
+
+* signature {
+  256-bit-secret
+  }
+
+
+## Authentication / Authorization
+<b>Authentication</b> verifies, who are you saying you are. In other words, it let you in the
+application. Method:
+* login form
+* http authentication
+* custom authentication method
+
+<b>Authorization </b> is when everybody has access to application. But decides if you have
+permission to access particular resource. Method:
+* access control urls
+* access control list (acl)
+
+### Basic authorization
+
+![basic_auth.png](src%2Fmain%2Fresources%2Fstatic%2Fbasic_auth.png)
+
+### JWT authorization
+
+![jwt_auth.png](src%2Fmain%2Fresources%2Fstatic%2Fjwt_auth.png)
+
+
+## JWT implementation
+
+![jwt-impl.png](src%2Fmain%2Fresources%2Fstatic%2Fjwt-impl.png)
 
 ## Getting Started
-To get started with this project, you will need to have the following installed on your local machine:
+To get started with this project, you will need to have the following installed on your local 
+machine:
 
 * JDK 17+
 * Maven 3+
