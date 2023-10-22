@@ -17,7 +17,6 @@ import springboot.security.dto.AuthenticationResponse;
 import springboot.security.dto.RegisterRequest;
 import springboot.security.entity.Token;
 import springboot.security.entity.User;
-import springboot.security.enumerated.Role;
 import springboot.security.enumerated.TokenType;
 import springboot.security.repository.TokenRepository;
 import springboot.security.repository.UserRepository;
@@ -44,7 +43,7 @@ public class AuthenticationService implements LogoutHandler {
                 .lastname(request.getLastname())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(Role.USER)
+                .role(request.getRole()) // ONLY FOR DEMO PURPOSE: dynamically adding user role
                 .build();
 
         var savedUser = userRepository.save(user);

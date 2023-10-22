@@ -13,7 +13,11 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 
+import static org.springframework.http.HttpMethod.*;
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
+import static springboot.security.enumerated.Permission.*;
+import static springboot.security.enumerated.Role.ADMIN;
+import static springboot.security.enumerated.Role.MANAGER;
 
 @Configuration
 @EnableWebSecurity
@@ -47,6 +51,31 @@ public class WebSecurityConfiguration {
                 .authorizeHttpRequests(req ->
                         req.requestMatchers(WHITE_LIST_URL)
                                 .permitAll()
+                                .requestMatchers("/api/v1/management/**").hasAnyRole(ADMIN.name(), MANAGER.name())
+                                .requestMatchers(GET, "/api/v1/management/**").hasAnyAuthority(ADMIN_READ.name(), MANAGER_READ.name())
+                                .requestMatchers(POST, "/api/v1/management/**").hasAnyAuthority(ADMIN_CREATE.name(), MANAGER_CREATE.name())
+                                .requestMatchers(PUT, "/api/v1/management/**").hasAnyAuthority(ADMIN_UPDATE.name(), MANAGER_UPDATE.name())
+                                .requestMatchers(DELETE, "/api/v1/management/**").hasAnyAuthority(ADMIN_DELETE.name(), MANAGER_DELETE.name())
+
+                                /*
+                                 * Using annotation at the controller and endpoints instead
+                                 * - better readability
+                                 * - allows SPL (Spring Expression Language) for complex authorization rules
+                                 * - support complex Access Control Scenarios such as hierarchical roles and custom
+                                 *   permission evaluators
+                                 *
+                                 * Using configuration based authorization
+                                 * - when you want to centralize your security configuration in single place
+                                 * - clear and straightforward mapping between urls and roles
+                                 * - when you want to enforce Global Secure Security rules that apply to all endpoints
+                                 *   in your application
+                                 */
+//                                .requestMatchers("/api/v1/admin/**").hasRole(ADMIN.name())
+//                                .requestMatchers(GET, "/api/v1/admin/**").hasAuthority(ADMIN_READ.name())
+//                                .requestMatchers(POST, "/api/v1/admin/**").hasAuthority(ADMIN_CREATE.name())
+//                                .requestMatchers(PUT, "/api/v1/admin/**").hasAuthority(ADMIN_UPDATE.name())
+//                                .requestMatchers(DELETE, "/api/v1/admin/**").hasAuthority(ADMIN_DELETE.name())
+
                                 .anyRequest()
                                 .authenticated()
                 )
