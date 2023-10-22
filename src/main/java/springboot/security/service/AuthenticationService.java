@@ -124,7 +124,9 @@ public class AuthenticationService implements LogoutHandler {
     }
 
     /**
-     * Refresh token
+     * Refresh token,
+     * improves the security and UX of the application by allowing clients to request new access
+     * tokens without requiring users to re-authenticate every time their access token expires.
      */
     public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
@@ -140,15 +142,18 @@ public class AuthenticationService implements LogoutHandler {
         if (userEmail != null) {
             var user = this.userRepository.findByEmail(userEmail).orElseThrow();
 
+            // Validate token
             if (jwtService.isTokenValid(refreshToken, user)) {
+                // Revoke old tokens
                 revokeAllUserTokens(user);
 
+                // Create new access token
                 var accessToken = jwtService.generateToken(user);
                 saveUserToken(user, accessToken);
 
                 var authResponse = AuthenticationResponse.builder()
                         .accessToken(accessToken)
-                        .refreshToken(refreshToken)
+                        .refreshToken(refreshToken) // We need to keep the same refresh token
                         .build();
 
                 new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
