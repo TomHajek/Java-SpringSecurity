@@ -7,8 +7,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.stereotype.Service;
 import springboot.security.dto.AuthenticationRequest;
 import springboot.security.dto.AuthenticationResponse;
@@ -24,7 +26,7 @@ import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
-public class AuthenticationService {
+public class AuthenticationService implements LogoutHandler {
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
@@ -49,11 +51,11 @@ public class AuthenticationService {
 
         // Create user token
         var jwtToken = jwtService.generateToken(user);
-        saveUserToken(savedUser, jwtToken);
 
         // Also create refresh token
         var refreshToken = jwtService.generateRefreshToken(user);
 
+        saveUserToken(savedUser, jwtToken);
         return AuthenticationResponse.builder()
                 .accessToken(jwtToken)
                 .refreshToken(refreshToken)
@@ -94,6 +96,34 @@ public class AuthenticationService {
     }
 
     /**
+     * Logout user
+     */
+    @Override
+    public void logout(HttpServletRequest request,
+                       HttpServletResponse response,
+                       Authentication authentication) {
+
+        // Extract token information from header
+        final String authHeader = request.getHeader("Authorization");
+        final String jwt = authHeader.substring(7);
+
+        // Validate header
+        if (!authHeader.startsWith("Bearer ")) {
+            return;
+        }
+
+        // Get token
+        var storedToken = tokenRepository.findByToken(jwt).orElse(null);
+
+        // Set token to expired and revoked
+        if (storedToken != null) {
+            storedToken.setExpired(true);
+            storedToken.setRevoked(true);
+            tokenRepository.save(storedToken);
+        }
+    }
+
+    /**
      * Refresh token
      */
     public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -125,11 +155,10 @@ public class AuthenticationService {
             }
 
         }
-
     }
 
     private void revokeAllUserTokens(User user) {
-        var validUserTokens = tokenRepository.findAllValidTokenByUser(user.getId());
+        var validUserTokens = tokenRepository.findAllValidTokensByUser(user.getId());
         if (validUserTokens.isEmpty()) return;
 
         validUserTokens.forEach(token -> {
