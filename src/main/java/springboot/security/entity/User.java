@@ -33,6 +33,8 @@ public class User implements UserDetails {
     private String lastname;
     private String email;
     private String password;
+    private boolean mfaEnabled; // multi-factor authentication
+    private String secret;      // if a user has mfa enabled, we need to generate a new secret
 
     @Enumerated(EnumType.STRING)
     private Role role;

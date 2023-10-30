@@ -3,6 +3,23 @@ This is a Spring Boot 3.0 demo project to demonstrate security implementation
 using json web tokens (JWT).
 
 
+## Getting Started
+To get started with this project, you will need to have the following installed on your local
+machine:
+
+* JDK 17+
+* Maven 3+
+
+To build and run the project, follow these steps:
+
+* Clone the repository (jwt branch)
+* Navigate to the project directory
+* Add database "jwt_security" to postgres
+* Build the project: mvn clean install
+* Run the project: mvn spring-boot:run
+
+-> The application will be available at http://localhost:8080.
+
 ## Technologies
 * Spring Boot 3.0
 * Spring Security
@@ -18,6 +35,7 @@ using json web tokens (JWT).
 * Customized access denied handling
 * Logout mechanism
 * Refresh token
+* Two-factor authentication
 
 
 ## What is JWT?
@@ -98,24 +116,21 @@ permission to access particular resource. Method:
 ![jwt_auth.png](src%2Fmain%2Fresources%2Fstatic%2Fjwt_auth.png)
 
 
-## JWT implementation
+## Spring Security with JWT scheme
 
 ![jwt-impl.png](src%2Fmain%2Fresources%2Fstatic%2Fjwt-impl.png)
 
-## Getting Started
-To get started with this project, you will need to have the following installed on your local 
-machine:
 
-* JDK 17+
-* Maven 3+
+## Two-factor authentication
 
-To build and run the project, follow these steps:
+Two-factor authentication is a multi-step process used to verify an identity user during a login attempt.
 
-* Clone the repository
-* Navigate to the project directory
-* Add database "jwt_security" to postgres
-* Build the project: mvn clean install
-* Run the project: mvn spring-boot:run
+### Registration 2FA + JWT workflow 
 
--> The application will be available at http://localhost:8080.
+![2fa-register-flow.png](src%2Fmain%2Fresources%2Fstatic%2F2fa-register-flow.png)
+
+### Login 2FA + JWT workflow
+
+![2fa-login-flow.png](src%2Fmain%2Fresources%2Fstatic%2F2fa-login-flow.png)
+
 

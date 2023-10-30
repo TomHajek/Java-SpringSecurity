@@ -1,11 +1,13 @@
 package springboot.security.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Service;
 import springboot.security.dto.AuthenticationRequest;
 import springboot.security.dto.AuthenticationResponse;
 import springboot.security.dto.RegisterRequest;
+import springboot.security.dto.VerificationRequest;
 import springboot.security.entity.Token;
 import springboot.security.entity.User;
 import springboot.security.enumerated.TokenType;
@@ -32,6 +35,7 @@ public class AuthenticationService implements LogoutHandler {
     private final TokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final TwoFactorAuthenticationService tfaService;
 
     /**
      * Register user
@@ -43,8 +47,14 @@ public class AuthenticationService implements LogoutHandler {
                 .lastname(request.getLastname())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(request.getRole()) // ONLY FOR DEMO PURPOSE: dynamically adding user role
+                .role(request.getRole()) // ONLY FOR DEMO PURPOSE, dynamically adding user role
+                .mfaEnabled(request.isMfaEnabled())
                 .build();
+
+        // If mfa is enabled, generate secret and pass the QR image uri in response
+        if (request.isMfaEnabled()) {
+            user.setSecret(tfaService.generateNewSecret());
+        }
 
         var savedUser = userRepository.save(user);
 
@@ -58,6 +68,8 @@ public class AuthenticationService implements LogoutHandler {
         return AuthenticationResponse.builder()
                 .accessToken(jwtToken)
                 .refreshToken(refreshToken)
+                .mfaEnabled(user.isMfaEnabled())
+                .secretImageUri(tfaService.generateQrCodeImageUri(user.getSecret()))
                 .build();
     }
 
@@ -73,12 +85,19 @@ public class AuthenticationService implements LogoutHandler {
                 )
         );
 
+        // Get user from db
         var user = userRepository.findByEmail(request.getEmail()).orElseThrow(
                 () -> new UsernameNotFoundException("User not found")
         );
 
-        // Before we create and save new user token, we revoke the previous tokens to have only one token valid
-        revokeAllUserTokens(user);
+        // If mfa is enabled, we do not need to set any access or refresh token
+        if (user.isMfaEnabled()) {
+            return AuthenticationResponse.builder()
+                    .accessToken("")
+                    .refreshToken("")
+                    .mfaEnabled(true)
+                    .build();
+        }
 
         // Create token
         var jwtToken = jwtService.generateToken(user);
@@ -86,11 +105,14 @@ public class AuthenticationService implements LogoutHandler {
         // Also create refresh token
         var refreshToken = jwtService.generateRefreshToken(user);
 
+        // Before we create and save new user token, we revoke the previous tokens to have only one token valid
+        revokeAllUserTokens(user);
         saveUserToken(user, jwtToken);
 
         return AuthenticationResponse.builder()
                 .accessToken(jwtToken)
                 .refreshToken(refreshToken)
+                .mfaEnabled(false)
                 .build();
     }
 
@@ -159,6 +181,28 @@ public class AuthenticationService implements LogoutHandler {
             }
 
         }
+    }
+
+    public AuthenticationResponse verifyCode(VerificationRequest verificationRequest) {
+        // Get user from database
+        User user = userRepository.findByEmail(verificationRequest.getEmail()).orElseThrow(
+                () -> new EntityNotFoundException(
+                        String.format("No user found with %S", verificationRequest.getEmail())
+                )
+        );
+
+        // Validate 2FA code
+        if (tfaService.isOtpNotValid(user.getSecret(), verificationRequest.getCode())) {
+            throw new BadCredentialsException("Code is not correct");
+        }
+
+        // Create token
+        var jwtToken = jwtService.generateToken(user);
+
+        return AuthenticationResponse.builder()
+                .accessToken(jwtToken)
+                .mfaEnabled(user.isMfaEnabled())
+                .build();
     }
 
     private void revokeAllUserTokens(User user) {
