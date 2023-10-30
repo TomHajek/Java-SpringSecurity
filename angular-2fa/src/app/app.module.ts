@@ -10,13 +10,18 @@ import { WelcomeComponent } from './welcome/welcome.component';
   declarations: [
     AppComponent,
     LoginComponent,
+    RegisterComponent,
     WelcomeComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule
+    HttpClientModule,
+    FormsModule
   ],
-  providers: [],
+  providers: [
+    HttpClient
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

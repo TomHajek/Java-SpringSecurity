@@ -21,12 +21,15 @@ To build and run the project, follow these steps:
 
 -> The application will be available at http://localhost:8080.
 
-To set up Angular frontend and generate components, the following commands have been executed:
+The following commands have been executed to set up Angular frontend and generate components:
 
 * ng new angular-2fa
 * cd angular-2fa/src/app
 * ng g c login
 * ng g c welcome
+* ng g s services/authentication
+* cd services
+* ng g guard auth/auth
 
 To run angular frontend, execute command:
 
