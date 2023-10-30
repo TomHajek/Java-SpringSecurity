@@ -9,6 +9,7 @@ machine:
 
 * JDK 17+
 * Maven 3+
+* Angular CLI
 
 To build and run the project, follow these steps:
 
@@ -19,6 +20,18 @@ To build and run the project, follow these steps:
 * Run the project: mvn spring-boot:run
 
 -> The application will be available at http://localhost:8080.
+
+To set up Angular frontend and generate components, the following commands have been executed:
+
+* ng new angular-2fa
+* cd angular-2fa/src/app
+* ng g c login
+* ng g c welcome
+
+To run angular frontend, execute command:
+
+* ng serve
+
 
 ## Technologies
 * Spring Boot 3.0
