@@ -1,0 +1,17 @@
+server:
+  port: 8081
+
+# SPRING SECURITY OAUTH2
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          # GITHUB --> go to your git-hub settings -> developer tools -> create new app
+          github:
+            clientID: Iv1.0557bc6e31beee01
+            clientSecret: 83d9afc79edad17bc287ac5735cc7fcc22805fc9
+          # GOOGLE --> go to console.cloud.google.com -> create new project -> api & services -> credentials
+#          google:
+#            clientID: 996081480002-5aepv43hs8cmh4uhssiqfr5346ecn41q.apps.googleusercontent.com
+#            clientSecret: google.oauth.client.secret = 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
