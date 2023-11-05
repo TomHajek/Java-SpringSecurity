@@ -31,7 +31,7 @@ public class WebSecurityConfiguration {
                 // Whitelisting (endpoints without authentication)
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req -> req
-                        .requestMatchers("/", "/index","/register", "/login", "/webjars/**", "/resources/**").permitAll()
+                        .requestMatchers("/", "/index","/registration", "/registration**", "/login", "/webjars/**", "/resources/**").permitAll()
                 )
         ;
 

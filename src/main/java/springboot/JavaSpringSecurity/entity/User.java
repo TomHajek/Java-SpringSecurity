@@ -9,7 +9,7 @@ import java.util.Collection;
 @Data
 @NoArgsConstructor
 @Entity
-@Table(name =  "user", uniqueConstraints = @UniqueConstraint(columnNames = "email"))
+@Table(name = "users", uniqueConstraints = @UniqueConstraint(columnNames = "email"))
 public class User {
 
     @Id

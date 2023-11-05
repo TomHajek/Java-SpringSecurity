@@ -22,7 +22,7 @@ public class RegistrationController {
     /**
      * Showing page with an empty registration form
      */
-    @GetMapping("/register")
+    @GetMapping("/registration")
     public String showUserRegistrationForm() {
         return "registration";
     }
@@ -33,7 +33,7 @@ public class RegistrationController {
      * @param registrationDto passing a user object (with filled user information)
      * @return                redirecting to registration success page
      */
-    @PostMapping("/register")
+    @PostMapping("/registration")
     public String registerUserAccount(@ModelAttribute("user") UserRegistrationDto registrationDto) {
         userService.save(registrationDto);
         return "redirect:/registration?success";
