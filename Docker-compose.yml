@@ -1,0 +1,32 @@
+version: '1.0'
+services:
+  db:
+    container_name: postgres-db
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: demo_security
+      POSTGRES_USERNAME: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+  app:
+    container_name: basic_security
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      # IntelliJ Remote debugging to docker container
+      - "JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+    ports:
+      - "8080:8080" # Application
+      - "5005:5005" # Debugging container
+    depends_on:
+      - db
+    restart: always
+
+volumes:
+  postgres_data:
