@@ -10,6 +10,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -75,6 +76,28 @@ public class WebSecurityConfiguration {
                         .logoutSuccessUrl("/login?logout")
                         .permitAll()
                 )
+
+                // Remember me (cookie)
+                .rememberMe(remember -> remember
+                        .tokenValiditySeconds(86400)                    // token validity
+                        .key("yourSecretHashKey")                       // simple hash-based token
+                        .rememberMeCookieName("RememberMe")             // setting the name of cookie
+                        .userDetailsService(customUserDetailsService)   // registering our custom service
+                )
+
+                /*
+                 * Optional Configuration
+                 * - The "remember me" feature is typically designed to provide persistent authentication across sessions.
+                 * - Here is a basic example of how we can configure session management along with "remember me" cookie.
+                 */
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)   // create a session only if required
+                        .sessionFixation().migrateSession()                         // prevent session fixation attacks
+                        .maximumSessions(1)                                         // limits the user to only one active session
+                        .expiredUrl("/login?expired")                               // redirects to this url on session expiration
+                        .maxSessionsPreventsLogin(true)                             // prevents new logins when the maximum number of sessions is reached
+                )
+
         ;
 
         return http.build();
