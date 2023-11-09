@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import springboot.JavaSpringSecurity.security.CustomSuccessHandler;
 import springboot.JavaSpringSecurity.security.CustomUserDetailsService;
@@ -37,6 +38,7 @@ public class WebSecurityConfiguration {
 
     private final CustomSuccessHandler customSuccessHandler;
     private final CustomUserDetailsService customUserDetailsService;
+    private final PersistentTokenRepository persistentTokenRepository;
 
     /**
      * Security filter chain to set up http config
@@ -72,16 +74,21 @@ public class WebSecurityConfiguration {
                 .logout(logout -> logout
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
+                        .deleteCookies("RememberMeCookie")
                         .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
                         .logoutSuccessUrl("/login?logout")
                         .permitAll()
                 )
 
-                // Remember me (cookie)
+                /*
+                 * Remember me (cookie)
+                 * - It is a good practise to request the user to re-authenticate before performing any sensitive
+                 *   operation, like changing password, accessing sensitive data, transferring funds, etc.
+                 */
                 .rememberMe(remember -> remember
                         .tokenValiditySeconds(86400)                    // token validity
-                        .key("yourSecretHashKey")                       // simple hash-based token
-                        .rememberMeCookieName("RememberMe")             // setting the name of cookie
+                        .rememberMeCookieName("RememberMeCookie")       // setting the name of cookie
+                        .tokenRepository(persistentTokenRepository)     // adding persistent token repository
                         .userDetailsService(customUserDetailsService)   // registering our custom service
                 )
 
