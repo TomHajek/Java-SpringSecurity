@@ -13,14 +13,20 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import springboot.JavaSpringSecurity.security.CustomSuccessHandler;
 import springboot.JavaSpringSecurity.security.CustomUserDetailsService;
 
+import javax.sql.DataSource;
+
 /**
+ * This configuration define from where spring security has to fetch user details and from where it has to authenticate.
+ * @EnableWebSecurity integrate spring security with spring mvc, it will also enable web security support.
+ *
  * @EnableGlobalMethodSecurity integrate spring security with spring mvc (method security in controllers),
- * we can also use method expressions here (prePostEnabled)
+ * we can also use method expressions here (prePostEnabled).
  */
 @Configuration
 @EnableWebSecurity
@@ -36,12 +42,12 @@ public class WebSecurityConfiguration {
             "/resources/**"
     };
 
+    private final DataSource dataSource;
     private final CustomSuccessHandler customSuccessHandler;
     private final CustomUserDetailsService customUserDetailsService;
-    private final PersistentTokenRepository persistentTokenRepository;
 
     /**
-     * Security filter chain to set up http config
+     * Security filter chain to set up http configuration
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -86,9 +92,9 @@ public class WebSecurityConfiguration {
                  *   operation, like changing password, accessing sensitive data, transferring funds, etc.
                  */
                 .rememberMe(remember -> remember
-                        .tokenValiditySeconds(86400)                    // token validity
+                        .tokenValiditySeconds(604800)                   // token validity 7 days
                         .rememberMeCookieName("RememberMeCookie")       // setting the name of cookie
-                        .tokenRepository(persistentTokenRepository)     // adding persistent token repository
+                        .tokenRepository(persistentTokenRepository())   // adding persistent token repository
                         .userDetailsService(customUserDetailsService)   // registering our custom service
                 )
 
@@ -110,17 +116,33 @@ public class WebSecurityConfiguration {
         return http.build();
     }
 
+    /**
+     * Bean for user password encryption and decryption
+     */
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * Bean to register our custom user details and password encoder to authentication provider
+     */
     @Bean
     public AuthenticationManager authManager() {
         DaoAuthenticationProvider daoProvider = new DaoAuthenticationProvider();
         daoProvider.setUserDetailsService(customUserDetailsService);
         daoProvider.setPasswordEncoder(passwordEncoder());
         return new ProviderManager(daoProvider);
+    }
+
+    /**
+     * Bean for remember me feature (session) with persistent token
+     */
+    @Bean
+    public PersistentTokenRepository persistentTokenRepository() {
+        JdbcTokenRepositoryImpl tokenRepository = new JdbcTokenRepositoryImpl();
+        tokenRepository.setDataSource(dataSource);
+        return tokenRepository;
     }
 
 }
