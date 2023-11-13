@@ -71,7 +71,28 @@ public class WebSecurityConfiguration {
                 .formLogin(login -> login
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
-                        //.defaultSuccessUrl("/")
+                        // ALTERNATIVE LOGIN HANDLERS
+                        //.defaultSuccessUrl("/login_success")
+                        //.failureUrl("/login_error")
+                        //.successHandler(new AuthenticationSuccessHandler() {
+                        //    @Override
+                        //    public void onAuthenticationSuccess(HttpServletRequest request,
+                        //                                        HttpServletResponse response,
+                        //                                        Authentication authentication) throws IOException, ServletException {
+                        //        String name = authentication.getName();
+                        //        System.out.println("Logged in user: " + name);
+                        //        response.sendRedirect("/login_success");
+                        //    }
+                        //})
+                        //.failureHandler(new AuthenticationFailureHandler() {
+                        //    @Override
+                        //    public void onAuthenticationFailure(HttpServletRequest request,
+                        //                                        HttpServletResponse response,
+                        //                                        AuthenticationException exception) throws IOException, ServletException {
+                        //        System.out.println("Login failure!");
+                        //        response.sendRedirect("/login_error");
+                        //    }
+                        //})
                         .successHandler(customSuccessHandler)
                         .permitAll()
                 )
@@ -83,6 +104,17 @@ public class WebSecurityConfiguration {
                         .deleteCookies("RememberMeCookie")
                         .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
                         .logoutSuccessUrl("/login?logout")
+                        // ALTERNATIVE LOGOUT HANDLER
+                        //.logoutSuccessUrl("/logout_success")
+                        //.logoutSuccessHandler(new LogoutSuccessHandler() {
+                        //    @Override
+                        //    public void onLogoutSuccess(HttpServletRequest request,
+                        //                                HttpServletResponse response,
+                        //                                Authentication authentication) throws IOException, ServletException {
+                        //        System.out.println("Logout succeed...");
+                        //        response.sendRedirect("/logout_success");
+                        //    }
+                        //})
                         .permitAll()
                 )
 
