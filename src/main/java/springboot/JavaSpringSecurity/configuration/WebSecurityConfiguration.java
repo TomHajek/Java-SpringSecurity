@@ -16,7 +16,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import springboot.JavaSpringSecurity.security.CustomSuccessHandler;
+import springboot.JavaSpringSecurity.event.CustomAuthenticationHandler;
 import springboot.JavaSpringSecurity.security.CustomUserDetailsService;
 
 import javax.sql.DataSource;
@@ -43,7 +43,7 @@ public class WebSecurityConfiguration {
     };
 
     private final DataSource dataSource;
-    private final CustomSuccessHandler customSuccessHandler;
+    private final CustomAuthenticationHandler customAuthenticationHandler;
     private final CustomUserDetailsService customUserDetailsService;
 
     /**
@@ -63,6 +63,7 @@ public class WebSecurityConfiguration {
                         .requestMatchers(WHITE_LIST_URL).permitAll()
                         .requestMatchers("/admin-page").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/user-page").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                        .requestMatchers("/account").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                         .anyRequest()
                         .authenticated()
                 )
@@ -71,29 +72,7 @@ public class WebSecurityConfiguration {
                 .formLogin(login -> login
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
-                        // ALTERNATIVE LOGIN HANDLERS
-                        //.defaultSuccessUrl("/login_success")
-                        //.failureUrl("/login_error")
-                        //.successHandler(new AuthenticationSuccessHandler() {
-                        //    @Override
-                        //    public void onAuthenticationSuccess(HttpServletRequest request,
-                        //                                        HttpServletResponse response,
-                        //                                        Authentication authentication) throws IOException, ServletException {
-                        //        String name = authentication.getName();
-                        //        System.out.println("Logged in user: " + name);
-                        //        response.sendRedirect("/login_success");
-                        //    }
-                        //})
-                        //.failureHandler(new AuthenticationFailureHandler() {
-                        //    @Override
-                        //    public void onAuthenticationFailure(HttpServletRequest request,
-                        //                                        HttpServletResponse response,
-                        //                                        AuthenticationException exception) throws IOException, ServletException {
-                        //        System.out.println("Login failure!");
-                        //        response.sendRedirect("/login_error");
-                        //    }
-                        //})
-                        .successHandler(customSuccessHandler)
+                        .successHandler(customAuthenticationHandler)
                         .permitAll()
                 )
 
@@ -104,17 +83,6 @@ public class WebSecurityConfiguration {
                         .deleteCookies("RememberMeCookie")
                         .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
                         .logoutSuccessUrl("/login?logout")
-                        // ALTERNATIVE LOGOUT HANDLER
-                        //.logoutSuccessUrl("/logout_success")
-                        //.logoutSuccessHandler(new LogoutSuccessHandler() {
-                        //    @Override
-                        //    public void onLogoutSuccess(HttpServletRequest request,
-                        //                                HttpServletResponse response,
-                        //                                Authentication authentication) throws IOException, ServletException {
-                        //        System.out.println("Logout succeed...");
-                        //        response.sendRedirect("/logout_success");
-                        //    }
-                        //})
                         .permitAll()
                 )
 

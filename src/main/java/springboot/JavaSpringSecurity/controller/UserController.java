@@ -1,13 +1,22 @@
 package springboot.JavaSpringSecurity.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import springboot.JavaSpringSecurity.dto.UserRegistrationDto;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import springboot.JavaSpringSecurity.dto.UserDto;
+import springboot.JavaSpringSecurity.entity.User;
+import springboot.JavaSpringSecurity.security.CustomUserDetails;
 import springboot.JavaSpringSecurity.security.CustomUserDetailsService;
 import springboot.JavaSpringSecurity.service.UserService;
 
@@ -26,8 +35,8 @@ public class UserController {
      * @return userRegistrationDto
      */
     @ModelAttribute("user")
-    public UserRegistrationDto userRegistrationDto() {
-        return new UserRegistrationDto();
+    public UserDto userRegistrationDto() {
+        return new UserDto();
     }
 
     /**
@@ -45,8 +54,8 @@ public class UserController {
      * @return                redirecting to registration success url, we could also redirect to login page instead
      */
     @PostMapping("/registration")
-    public String registerUserAccount(@ModelAttribute("user") UserRegistrationDto registrationDto) {
-        userService.save(registrationDto);
+    public String registerUserAccount(@ModelAttribute("user") UserDto registrationDto) {
+        userService.saveUser(registrationDto);
         return "redirect:/registration?success";
     }
 
@@ -57,25 +66,6 @@ public class UserController {
     @GetMapping("/login")
     public String login() {
         return "login";
-    }
-
-    /**
-     * ALTERNATIVE LOGIN HANDLERS
-     * This is only for demo purpose as an alternative for CustomSuccessHandler
-     * Also, instead of calling these handlers here, we can use them directly in the http config
-     */
-    @Deprecated
-    @PostMapping("/login_success_handler")
-    public String loginSuccessHandler() {
-        System.out.println("Login success handler...");
-        return "index";
-    }
-
-    @Deprecated
-    @PostMapping("/login_failure_handler")
-    public String loginFailureHandler() {
-        System.out.println("Login failure handler...");
-        return "login_error";
     }
 
     /**
@@ -109,6 +99,71 @@ public class UserController {
         model.addAttribute("user", userDetails);
         model.addAttribute("userList", userService.listUsers());
         return "admin";
+    }
+
+    /**
+     * USER ACCOUNT PAGE - Show account information for logged user
+     * @param loggedUser CustomUserDetails
+     * @param model      User object
+     * @return           account.html
+     */
+    @GetMapping("/account")
+    public String viewUserDetails(@AuthenticationPrincipal CustomUserDetails loggedUser, Model model) {
+        String email = loggedUser.getUsername();
+
+        // Fetch logged user by "username"
+        User user = userService.getUserByEmail(email);
+
+        // Map user to dto
+        UserDto userDto = UserDto.of(user);
+
+        // Pass userDto to the thymeleaf
+        model.addAttribute("user", userDto);
+
+        if (model.containsAttribute("success")) {
+            model.addAttribute("message", "Your account details have been changed!");
+        }
+
+        return "account";
+    }
+
+    /**
+     * SUBMIT USER ACCOUNT PAGE - Update user details
+     * @param loggedUser         CustomUserDetails
+     * @param redirectAttributes RedirectAttributes
+     * @return                   Redirect to account url
+     */
+    @PostMapping("/account")
+    public String saveUserDetails(@AuthenticationPrincipal CustomUserDetails loggedUser,
+                                  @ModelAttribute("user") UserDto userDto,
+                                  RedirectAttributes redirectAttributes,
+                                  HttpServletRequest request,
+                                  HttpServletResponse response) {
+
+        // Update user details
+        boolean isLoginInfoChanged = userService.updateUser(loggedUser.getUsername(), userDto);
+
+        // Invalidate user session if user credentials are changed
+        if (isLoginInfoChanged) {
+            invalidateUserSession(request, response);
+            return "redirect:/login?logout";
+        }
+
+        // We can either use flashAttribute or just addAttribute "message"
+        redirectAttributes.addFlashAttribute("message", "Your account details have been updated.");
+        return "redirect:/account";
+    }
+
+    private void invalidateUserSession(HttpServletRequest request, HttpServletResponse response) {
+        SecurityContextLogoutHandler logoutHandler = new SecurityContextLogoutHandler();
+        logoutHandler.setInvalidateHttpSession(true);
+        logoutHandler.setClearAuthentication(true);
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth != null) {
+            logoutHandler.logout(request, response, auth);
+        }
     }
 
 }

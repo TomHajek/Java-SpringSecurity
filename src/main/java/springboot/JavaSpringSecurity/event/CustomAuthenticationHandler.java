@@ -1,4 +1,4 @@
-package springboot.JavaSpringSecurity.security;
+package springboot.JavaSpringSecurity.event;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,7 +14,7 @@ import java.util.Collection;
 import java.util.List;
 
 @Service
-public class CustomSuccessHandler implements AuthenticationSuccessHandler {
+public class CustomAuthenticationHandler implements AuthenticationSuccessHandler {
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
