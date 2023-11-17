@@ -139,19 +139,23 @@ public class UserController {
                                   RedirectAttributes redirectAttributes,
                                   HttpServletRequest request,
                                   HttpServletResponse response) {
+        try {
+            // Update user details
+            boolean isLoginInfoChanged = userService.updateUser(loggedUser.getUsername(), userDto);
 
-        // Update user details
-        boolean isLoginInfoChanged = userService.updateUser(loggedUser.getUsername(), userDto);
+            // Invalidate user session if user credentials are changed
+            if (isLoginInfoChanged) {
+                invalidateUserSession(request, response);
+                return "redirect:/login?logout";
+            }
 
-        // Invalidate user session if user credentials are changed
-        if (isLoginInfoChanged) {
-            invalidateUserSession(request, response);
-            return "redirect:/login?logout";
+            // We can either use flashAttribute or just addAttribute "message"
+            redirectAttributes.addFlashAttribute("message", "Your account details have been updated.");
+            return "redirect:/account";
+        } catch (Exception exception) {
+            //TODO: handle exceptions, for demo purpose I just return to error page
+            return "/error-page";
         }
-
-        // We can either use flashAttribute or just addAttribute "message"
-        redirectAttributes.addFlashAttribute("message", "Your account details have been updated.");
-        return "redirect:/account";
     }
 
     private void invalidateUserSession(HttpServletRequest request, HttpServletResponse response) {

@@ -39,21 +39,32 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean updateUser(String username, UserDto userDto) {
+    public boolean updateUser(String username, UserDto userDto) throws Exception {
         User userToUpdate = getUserByEmail(username);
 
-        // Do the comparison if login credentials are going to change
-        boolean isEmailChanged = userToUpdate.getEmail().equals(userDto.getEmail());
-        boolean isPasswordChanged = passwordEncoder.matches(userDto.getPassword(), userToUpdate.getPassword());
+        if (userToUpdate != null) {
+            // Do the comparison if login credentials are going to change
+            boolean isEmailChanged = userToUpdate.getEmail().equals(userDto.getEmail());
+            boolean isPasswordChanged = passwordEncoder.matches(userDto.getPassword(), userToUpdate.getPassword());
 
-        userToUpdate.setFirstName(userDto.getFirstName());
-        userToUpdate.setLastName(userDto.getLastName());
-        userToUpdate.setEmail(userDto.getEmail());
-        userToUpdate.setPassword(passwordEncoder.encode(userDto.getPassword()));
-        userRepository.save(userToUpdate);
+            userToUpdate.setFirstName(userDto.getFirstName());
+            userToUpdate.setLastName(userDto.getLastName());
+            userToUpdate.setEmail(userDto.getEmail());
+            userToUpdate.setPassword(passwordEncoder.encode(userDto.getPassword()));
+            userRepository.save(userToUpdate);
 
-        // If user changed login credentials, log him out in the endpoint
-        return isEmailChanged || isPasswordChanged;
+            // If user changed login credentials, log him out in the endpoint
+            return isEmailChanged || isPasswordChanged;
+
+        } else {
+            throw new Exception("Could not find user with given email: " + username);
+        }
+    }
+
+    @Override
+    public void resetUserPassword(User user, String password) {
+        user.setPassword(passwordEncoder.encode(password));
+        userRepository.save(user);
     }
 
 }

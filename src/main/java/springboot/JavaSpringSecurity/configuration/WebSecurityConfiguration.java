@@ -38,6 +38,9 @@ public class WebSecurityConfiguration {
             "/index",
             "/registration**",
             "/login**",
+            "/reset-password",
+            "/password-request",
+            "/error-page",
             "/webjars/**",
             "/resources/**"
     };

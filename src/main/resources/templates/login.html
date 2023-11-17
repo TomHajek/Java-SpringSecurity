@@ -49,6 +49,7 @@
                     <label for="remember-me">Remember Me:</label>
                     <input type="checkbox" id="remember-me" name="remember-me" />
                 </p>
+                <p><a th:href="@{/password-request}">Forgot Password?</a></p>
                 <input type="hidden"
                        name="${_csrf.parameterName}"
                        value="${_csrf.token}"/>

@@ -10,6 +10,7 @@ public interface UserService {
     List<User> listUsers();
     User getUserByEmail(String email);
     void saveUser(UserDto registrationDto);
-    boolean updateUser(String username, UserDto userDto);
+    boolean updateUser(String username, UserDto userDto) throws Exception;
+    void resetUserPassword(User user, String password);
 
 }

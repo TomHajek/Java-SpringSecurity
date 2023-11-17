@@ -30,7 +30,7 @@ public class CustomAuthenticationHandler implements AuthenticationSuccessHandler
         } else if (highestRole.equals("ROLE_USER")) {
             response.sendRedirect("/user-page");
         } else {
-            response.sendRedirect("/error");
+            response.sendRedirect("/error-page");
         }
     }
 
