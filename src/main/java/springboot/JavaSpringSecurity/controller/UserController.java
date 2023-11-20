@@ -30,33 +30,11 @@ public class UserController {
     private final CustomUserDetailsService customUserDetailsService;
 
     /**
-     * We can either use dto like this, or use a Model object directly in the get method for empty registration form,
-     * to populate the data in model object
-     * @return userRegistrationDto
+     * @return userDto
      */
     @ModelAttribute("user")
-    public UserDto userRegistrationDto() {
+    public UserDto userDto() {
         return new UserDto();
-    }
-
-    /**
-     * REGISTRATION PAGE - Showing page with an empty registration form
-     * @return registration.html
-     */
-    @GetMapping("/registration")
-    public String showUserRegistrationForm() {
-        return "registration";
-    }
-
-    /**
-     * SUBMIT REGISTRATION PAGE - Submitting filled in registration form
-     * @param registrationDto passing a user object (with filled user information)
-     * @return                redirecting to registration success url, we could also redirect to login page instead
-     */
-    @PostMapping("/registration")
-    public String registerUserAccount(@ModelAttribute("user") UserDto registrationDto) {
-        userService.saveUser(registrationDto);
-        return "redirect:/registration?success";
     }
 
     /**
@@ -66,15 +44,6 @@ public class UserController {
     @GetMapping("/login")
     public String login() {
         return "login";
-    }
-
-    /**
-     * INDEX PAGE - Showing index page
-     * @return index.html
-     */
-    @GetMapping("/")
-    public String viewHomePage() {
-        return "index";
     }
 
     /**
@@ -92,7 +61,7 @@ public class UserController {
      * ADMIN PAGE - Showing admin page
      * @return admin.html
      */
-    //@PreAuthorize("hasAuthority("ADMIN")") // Done in http config
+    //@PreAuthorize("hasAuthority("ROLE_ADMIN")") // Done in http config
     @GetMapping("/admin-page")
     public String viewAdminPage (Model model, Principal principal) {
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(principal.getName());
@@ -128,7 +97,7 @@ public class UserController {
     }
 
     /**
-     * SUBMIT USER ACCOUNT PAGE - Update user details
+     * SUBMIT USER ACCOUNT PAGE - Update user account details
      * @param loggedUser         CustomUserDetails
      * @param redirectAttributes RedirectAttributes
      * @return                   Redirect to account url
