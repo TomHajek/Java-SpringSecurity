@@ -132,9 +132,13 @@ permission to access particular resource. Method:
 ![jwt_auth.png](src%2Fmain%2Fresources%2Fstatic%2Fjwt_auth.png)
 
 
-## Spring Security with JWT scheme
+## Spring Security in depth with JWT
 
-![jwt-impl.png](src%2Fmain%2Fresources%2Fstatic%2Fjwt-impl.png)
+![jwt-security.png](src%2Fmain%2Fresources%2Fstatic%2Fjwt-security.png)
+
+## Authorization flow with JWT
+
+![jwt-flow.png](src%2Fmain%2Fresources%2Fstatic%2Fjwt-flow.png)
 
 
 ## Two-factor authentication
@@ -148,5 +152,4 @@ Two-factor authentication is a multi-step process used to verify an identity use
 ### Login 2FA + JWT workflow
 
 ![2fa-login-flow.png](src%2Fmain%2Fresources%2Fstatic%2F2fa-login-flow.png)
-
 
